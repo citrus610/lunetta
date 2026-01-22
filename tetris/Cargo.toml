@@ -1,0 +1,15 @@
+[package]
+name = "tetris"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+enumset = "1.1.10"
+strum = { version = "0.27.2", features = ["derive"] }
+
+[dev-dependencies]
+criterion = "0.7"
+
+[[bench]]
+name = "movegen"
+harness = false

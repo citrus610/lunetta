@@ -1,0 +1,11 @@
+[workspace]
+members = [
+    "tetris",
+    "tbp",
+]
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
