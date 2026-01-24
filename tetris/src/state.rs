@@ -5,27 +5,27 @@ use crate::{
     piece::Piece,
 };
 
-pub fn combo_bonus(index: usize) -> u32 {
-    const TABLE: [u32; 13] = [0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5];
+pub fn combo_bonus(index: usize) -> u8 {
+    const TABLE: [u8; 13] = [0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5];
 
     TABLE[index.min(TABLE.len() - 1)]
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct Lock {
-    pub cleared: u32,
-    pub sent: u32,
+    pub cleared: u8,
+    pub sent: u8,
     pub softdrop: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct State {
     pub board: Board,
     pub hold: Option<Piece>,
     pub bag: Bag,
     pub next: usize,
-    pub b2b: u32,
-    pub combo: u32,
+    pub b2b: u8,
+    pub combo: u8,
 }
 
 impl State {
@@ -88,6 +88,8 @@ impl State {
 
                 self.b2b = 0;
             }
+
+            self.b2b = self.b2b.min(2);
 
             if self.b2b > 1 {
                 lock.sent += 1;

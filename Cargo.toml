@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "tetris",
+    "bot",
     "tbp",
 ]
 

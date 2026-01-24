@@ -1,7 +1,7 @@
 use enumset::*;
 use strum::*;
 
-#[derive(Debug, PartialOrd, Ord, EnumIter, FromRepr, EnumSetType)]
+#[derive(Debug, PartialOrd, Ord, Hash, EnumIter, FromRepr, EnumSetType)]
 #[enumset(repr = "u8")]
 pub enum Piece {
     I,
@@ -13,7 +13,7 @@ pub enum Piece {
     Z,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, EnumIter, FromRepr)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, EnumIter, FromRepr)]
 pub enum Rotation {
     North,
     East,

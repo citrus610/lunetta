@@ -1,82 +1,112 @@
-use strum::IntoEnumIterator;
+use bot::{
+    beam::{BeamSettings, beam_search},
+    eval::Weights,
+};
+use rand::{rng, seq::SliceRandom};
+use tetris::{
+    bag::Bag,
+    board::Board,
+    piece::Piece,
+    state::{Lock, State},
+};
 
-use tetris::{board::Board, movegen::*, piece::Piece};
+fn random_queue(bag: usize) -> Vec<Piece> {
+    let mut queue = Vec::new();
 
-fn print_movegen(name: &str, board: Board) {
-    println!("Board: {}", name);
-    println!("{}", board);
+    for _ in 0..bag {
+        let mut full = vec![
+            Piece::I,
+            Piece::O,
+            Piece::L,
+            Piece::J,
+            Piece::S,
+            Piece::Z,
+            Piece::T,
+        ];
 
-    for kind in Piece::iter() {
-        let moves = movegen(&board, kind);
+        let mut rng = rng();
 
-        println!("{}: {}", kind, moves.len());
+        full.shuffle(&mut rng);
+
+        queue.append(&mut full);
     }
+
+    queue
 }
 
 fn main() {
-    print_movegen("empty", Board::new());
+    let w = Weights {
+        height: -50,
+        well: 25,
+        center: -100,
+        bumpiness: -25,
+        holes: -400,
+        garbage: -300,
+        tslot: [150, 200, 250, 500],
+        b2b_bonus: 200,
+        combo_bonus: 200,
 
-    #[rustfmt::skip]
-    print_movegen("mini", Board {
-        cols: [
-            0b00000000,
-            0b00000001,
-            0b00000001,
-            0b00000001,
-            0b00000001,
-            0b00000001,
-            0b00000001,
-            0b00000001,
-            0b00000001,
-            0b00000001,
-        ]
-    });
+        clear: [-400, -350, -300, 250],
+        tspin: [50, 400, 800],
+        tspin_mini: [0, 0],
+        combo: [200, 500, 1000, 1500, 2000],
+        b2b: 100,
+        pc: 2000,
+        waste_t: -100,
+    };
 
-    #[rustfmt::skip]
-    print_movegen("tspin", Board {
-        cols: [
-            0b00111111,
-            0b00111111,
-            0b00011111,
-            0b00000111,
-            0b00000001,
-            0b00000000,
-            0b00001101,
-            0b00011111,
-            0b00111111,
-            0b11111111,
-        ]
-    });
+    let settings = BeamSettings {
+        width: 250,
+        depth: 7,
+        branch: 1,
+    };
 
-    #[rustfmt::skip]
-    print_movegen("dtd", Board {
-        cols: [
-            0b111111111,
-            0b111111111,
-            0b011111111,
-            0b011111111,
-            0b000111111,
-            0b000100110,
-            0b010000001,
-            0b011110111,
-            0b011111111,
-            0b011111111,
-        ]
-    });
+    let mut state = State {
+        board: Board::new(),
+        hold: None,
+        bag: Bag::all(),
+        next: 0,
+        b2b: 0,
+        combo: 0,
+    };
 
-    #[rustfmt::skip]
-    print_movegen("bad", Board {
-        cols: [
-            0b000011111111,
-            0b000011000000,
-            0b110011000000,
-            0b110011001100,
-            0b110011001100,
-            0b110011001100,
-            0b110011001100,
-            0b110000001100,
-            0b110000001100,
-            0b111111111100,
-        ]
-    });
+    let mut lock = Lock {
+        cleared: 0,
+        sent: 0,
+        softdrop: false,
+    };
+
+    let queue_full = random_queue(1000);
+
+    let mut holded = false;
+
+    for i in 0..1000 {
+        let mut queue = Vec::new();
+
+        for p in 0..12 {
+            queue.push(queue_full[i + p + holded as usize]);
+        }
+
+        if let Some(result) = beam_search(state.clone(), lock.clone(), queue.clone(), w.clone(), settings.clone()) {
+            let mv = result.candidates.first().unwrap().mv;
+
+            if *queue.first().unwrap() != mv.kind {
+                holded = true;
+            }
+
+            lock = state.make(&mv, &queue);
+
+            println!("{}", state.board);
+            println!("nodes: {}", result.nodes);
+            println!("depth: {}", result.depth);
+
+            state.next = 0;
+
+            std::thread::sleep(std::time::Duration::from_millis(500));
+        }
+        else {
+            println!("death!");
+            break;
+        }
+    }
 }

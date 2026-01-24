@@ -2,7 +2,7 @@ use std::u64;
 
 use crate::moves::Move;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Board {
     pub cols: [u64; 10],
 }
@@ -56,7 +56,7 @@ impl Board {
     }
 
     #[cfg(all(target_arch = "x86_64", target_feature = "bmi2"))]
-    pub fn clear_lines(&mut self) -> u32 {
+    pub fn clear_lines(&mut self) -> u8 {
         let mask = self.cols.iter().fold(u64::MAX, |a, c| a & c);
 
         if mask == 0 {
@@ -67,11 +67,11 @@ impl Board {
             self.cols[x] = unsafe { std::arch::x86_64::_pext_u64(self.cols[x], !mask) };
         }
 
-        mask.count_ones()
+        mask.count_ones() as u8
     }
 
     #[cfg(not(all(target_arch = "x86_64", target_feature = "bmi2")))]
-    pub fn clear_lines(&mut self) -> u32 {
+    pub fn clear_lines(&mut self) -> u8 {
         let mut mask = self.cols.iter().fold(u64::MAX, |a, c| a & c);
 
         if mask == 0 {
@@ -101,7 +101,7 @@ impl Board {
             self.cols[x] = lo | (hi << shift);
         }
 
-        mask.count_ones()
+        mask.count_ones() as u8
     }
 }
 
