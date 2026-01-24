@@ -1,2 +1,2 @@
-# lunetta
+# sunbeam
 wip tetris bot
