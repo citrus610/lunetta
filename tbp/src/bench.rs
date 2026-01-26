@@ -93,9 +93,9 @@ pub fn bench() {
                 sent: 0,
                 softdrop: false,
             },
-            queue,
-            Weights::default(),
-            BeamSettings {
+            &queue,
+            &Weights::default(),
+            &BeamSettings {
                 width: 250,
                 depth: 12,
                 branch: 1,
