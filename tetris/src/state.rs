@@ -41,24 +41,12 @@ impl State {
     }
 
     pub fn make(&mut self, mv: &Move, queue: &[Piece]) -> Lock {
-        let mut current = queue[self.next];
-
-        if mv.kind != current {
-            let was_hold_empty = self.hold.is_none();
-
-            self.hold = Some(current);
-
-            if was_hold_empty {
-                update_bag(&mut self.bag, current);
-
-                self.next += 1;
-
-                current = queue[self.next];
-            }
+        if mv.kind != queue[self.next] && self.hold.replace(queue[self.next]).is_none() {
+            update_bag(&mut self.bag, queue[self.next]);
+            self.next += 1;
         }
 
-        update_bag(&mut self.bag, current);
-
+        update_bag(&mut self.bag, queue[self.next]);
         self.next += 1;
 
         let mut lock = Lock {

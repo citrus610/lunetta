@@ -1,7 +1,6 @@
-use std::{
-    cmp::Reverse,
-    collections::{BinaryHeap, HashMap},
-};
+use std::cmp::Reverse;
+use std::collections::{BinaryHeap, HashMap};
+use std::collections::hash_map::Entry;
 
 use tetris::state::State;
 
@@ -30,14 +29,16 @@ impl Layer {
 
     pub fn push(&mut self, node: Node) {
         // Check transposition table
-        if let Some(entry) = self.map.get_mut(&node.state) {
-            if node.reward < *entry {
-                return;
+        match self.map.entry(node.state.clone()) {
+            Entry::Occupied(mut entry) => {
+                if node.reward <= *entry.get() {
+                    return;
+                }
+                entry.insert(node.reward);
             }
-
-            *entry = node.reward;
-        } else {
-            self.map.insert(node.state.clone(), node.reward);
+            Entry::Vacant(entry) => {
+                entry.insert(node.reward);
+            }
         }
 
         // If our layer is smaller than beam width, push normally
@@ -47,9 +48,7 @@ impl Layer {
         }
 
         // Only push if node is better than our's worst
-        let Reverse(worst) = self.heap.peek().unwrap();
-
-        if *worst < node {
+        if self.heap.peek().expect("has worst").0 < node {
             self.heap.pop();
             self.heap.push(Reverse(node));
         }

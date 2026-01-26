@@ -89,9 +89,9 @@ fn main() {
         if let Some(result) = beam_search(
             state.clone(),
             lock.clone(),
-            queue.clone(),
-            w.clone(),
-            settings.clone(),
+            &queue,
+            &w,
+            &settings,
         ) {
             let mv = result.candidates.first().unwrap().mv;
 
