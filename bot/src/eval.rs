@@ -29,6 +29,30 @@ pub struct Weights {
     pub waste_t: i32,
 }
 
+impl Default for Weights {
+    fn default() -> Self {
+        Self {
+            height: -50,
+            well: 25,
+            center: -100,
+            bumpiness: -25,
+            holes: -400,
+            garbage: -300,
+            tslot: [150, 200, 250, 500],
+            b2b_bonus: 200,
+            combo_bonus: 200,
+
+            clear: [-400, -350, -300, 250],
+            tspin: [50, 400, 800],
+            tspin_mini: [0, 0],
+            combo: [200, 500, 1000, 1500, 2000],
+            b2b: 100,
+            pc: 2000,
+            waste_t: -100,
+        }
+    }
+}
+
 // Return the well's depth and the position of the well
 fn well(board: &Board, heights: &[u32; 10]) -> (i32, usize) {
     let mut x = 0;
