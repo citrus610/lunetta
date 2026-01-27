@@ -146,7 +146,10 @@ fn tslot(board: &Board, heights: &[u32; 10]) -> Option<Move> {
             }
         }
 
-        if heights[x + 1] >= 3 && heights[x + 1] >= heights[x] && heights[x + 1] + 1 < heights[x + 2] {
+        if heights[x + 1] >= 3
+            && heights[x + 1] >= heights[x]
+            && heights[x + 1] + 1 < heights[x + 2]
+        {
             if ((board.cols[x] >> (heights[x + 1] - 3)) & 0b11000) == 0b00000
                 && ((board.cols[x + 1] >> (heights[x + 1] - 3)) & 0b11110) == 0b00100
                 && ((board.cols[x + 2] >> (heights[x + 1] - 3)) & 0b11111) == 0b10000
@@ -164,7 +167,10 @@ fn tslot(board: &Board, heights: &[u32; 10]) -> Option<Move> {
             }
         }
 
-        if heights[x + 1] >= 3 && heights[x + 1] >= heights[x + 2] && heights[x + 1] + 1 < heights[x] {
+        if heights[x + 1] >= 3
+            && heights[x + 1] >= heights[x + 2]
+            && heights[x + 1] + 1 < heights[x]
+        {
             if ((board.cols[x] >> (heights[x + 1] - 3)) & 0b11111) == 0b10000
                 && ((board.cols[x + 1] >> (heights[x + 1] - 3)) & 0b11110) == 0b00100
                 && ((board.cols[x + 2] >> (heights[x + 1] - 3)) & 0b11000) == 0b00000
