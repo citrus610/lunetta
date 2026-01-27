@@ -63,7 +63,7 @@ fn main() {
     let mut queue = random_queue(1000);
 
     let mut bot = BotState::new(
-        &State {
+        State {
             board: Board::new(),
             hold: None,
             bag: Bag::all(),
@@ -71,17 +71,15 @@ fn main() {
             b2b: 0,
             combo: 0,
         },
-        &Lock {
+        Lock {
             cleared: 0,
             sent: 0,
             softdrop: false,
         },
-        &queue[..12],
-        &weights,
+        queue.drain(..12).collect(),
+        weights,
     )
     .expect("bot should be valid smh!");
-
-    queue.drain(..12);
 
     let mut holded = false;
 
