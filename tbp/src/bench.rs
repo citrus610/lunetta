@@ -78,7 +78,7 @@ pub fn bench() {
         ];
 
         let bot = BotState::new(
-            &State {
+            State {
                 board: board,
                 hold: None,
                 bag: Bag::all(),
@@ -86,13 +86,13 @@ pub fn bench() {
                 b2b: 0,
                 combo: 0,
             },
-            &Lock {
+            Lock {
                 cleared: 0,
                 sent: 0,
                 softdrop: false,
             },
-            &queue,
-            &Weights::default(),
+            queue,
+            Weights::default(),
         )
         .expect("error!");
 

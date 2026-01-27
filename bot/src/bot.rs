@@ -26,7 +26,7 @@ pub enum BotError {
 
 #[derive(Debug, Clone)]
 pub struct BotState {
-    state: State,
+    root: State,
     lock: Lock,
     queue: Vec<Piece>,
     weights: Weights,
@@ -56,47 +56,54 @@ pub struct BotResult {
 
 impl BotState {
     pub fn new(
-        state: &State,
-        lock: &Lock,
-        queue: &[Piece],
-        weights: &Weights,
+        root: State,
+        lock: Lock,
+        queue: Vec<Piece>,
+        weights: Weights,
     ) -> Result<Self, BotError> {
-        if queue.len() < 2 || !is_queue_valid(&queue, state.bag) {
+        if queue.len() < 2 || !is_queue_valid(&queue, root.bag) {
             return Err(BotError::InvalidQueue);
         }
 
         Ok(Self {
-            state: state.clone(),
-            lock: *lock,
-            queue: queue.into(),
-            weights: *weights,
+            root,
+            lock,
+            queue,
+            weights,
         })
     }
 
-    pub fn make(&mut self, mv: Move, nexts: &[Piece]) -> Result<(), BotError> {
-        let mut bag = self.state.bag;
+    pub fn root(&self) -> &State {
+        &self.root
+    }
 
+    pub fn queue(&self) -> &[Piece] {
+        &self.queue
+    }
+
+    pub fn make(&mut self, mv: Move, new_pieces: &[Piece]) -> Result<(), BotError> {
+        let mut bag = self.root.bag;
         for kind in &self.queue {
             update_bag(&mut bag, *kind);
         }
 
-        if !is_queue_valid(nexts, bag) {
+        if !is_queue_valid(new_pieces, bag) {
             return Err(BotError::InvalidQueue);
         }
 
-        self.lock = self.state.make(&mv, &self.queue);
-        self.queue.extend(nexts);
-        self.queue.drain(..self.state.next);
-        self.state.next = 0;
+        self.lock = self.root.make(&mv, &self.queue);
+        self.queue.extend(new_pieces);
+        self.queue.drain(..self.root.next);
+        self.root.next = 0;
 
         Ok(())
     }
 
-    pub fn reset(&mut self, board: &Board, b2b: u8, combo: u8) -> Result<(), BotError> {
-        self.state.board = *board;
-        self.state.b2b = b2b;
-        self.state.combo = combo;
-        self.state.next = 0;
+    pub fn reset(&mut self, board: Board, b2b: u8, combo: u8) -> Result<(), BotError> {
+        self.root.board = board;
+        self.root.b2b = b2b;
+        self.root.combo = combo;
+        self.root.next = 0;
 
         Ok(())
     }
@@ -106,7 +113,7 @@ impl BotState {
             candidates: Vec::new(),
             nodes: 0,
             depth: 0,
-            root: self.state.clone(),
+            root: self.root.clone(),
             queue: self.queue.clone(),
         };
         let mut parents = Vec::with_capacity(configs.width);
@@ -114,7 +121,7 @@ impl BotState {
         let root = Node {
             state: State {
                 next: 0,
-                ..self.state
+                ..self.root
             },
             lock: self.lock,
             value: 0,
@@ -145,7 +152,7 @@ impl BotState {
         }
 
         result.depth = 1;
-        while result.depth < self.queue.len() - self.state.hold.is_none() as usize {
+        while result.depth < self.queue.len() - self.root.hold.is_none() as usize {
             result.nodes += think(
                 &mut parents,
                 &mut children,
@@ -158,10 +165,6 @@ impl BotState {
         }
 
         Ok(result)
-    }
-
-    pub fn root(&self) -> &State {
-        &self.state
     }
 }
 
