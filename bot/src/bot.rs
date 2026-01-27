@@ -131,7 +131,7 @@ impl BotState {
                 mv,
                 BotScore {
                     depth: 0,
-                    score: child.reward as i64,
+                    score: child.reward as i64 + child.value as i64,
                 },
             ));
 
@@ -225,7 +225,7 @@ fn think(
 
             let score = BotScore {
                 depth: depth,
-                score: child.reward as i64,
+                score: child.reward as i64 + child.value as i64,
             };
             if candidates[child.index].1 < score {
                 candidates[child.index].1 = score;
