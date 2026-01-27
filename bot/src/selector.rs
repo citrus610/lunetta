@@ -1,19 +1,19 @@
 use std::cmp::Reverse;
-use std::collections::{BinaryHeap, HashMap};
 use std::collections::hash_map::Entry;
+use std::collections::{BinaryHeap, HashMap};
 
 use tetris::state::State;
 
 use crate::node::Node;
 
 #[derive(Debug, Clone)]
-pub struct Layer {
+pub struct Selector {
     map: HashMap<State, i32>,
     heap: BinaryHeap<Reverse<Node>>,
     size: usize,
 }
 
-impl Layer {
+impl Selector {
     pub fn new(size: usize) -> Self {
         Self {
             map: HashMap::with_capacity(1 << 12),

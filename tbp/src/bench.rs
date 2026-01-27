@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use bot::{
-    beam::{BeamSettings, beam_search},
+    bot::{BotConfigs, BotState},
     eval::Weights,
 };
 use tetris::{
@@ -77,10 +77,8 @@ pub fn bench() {
             Piece::S,
         ];
 
-        let start = Instant::now();
-
-        nodes += beam_search(
-            State {
+        let bot = BotState::new(
+            &State {
                 board: board,
                 hold: None,
                 bag: Bag::all(),
@@ -88,21 +86,26 @@ pub fn bench() {
                 b2b: 0,
                 combo: 0,
             },
-            Lock {
+            &Lock {
                 cleared: 0,
                 sent: 0,
                 softdrop: false,
             },
             &queue,
             &Weights::default(),
-            &BeamSettings {
+        )
+        .expect("error!");
+
+        let start = Instant::now();
+
+        nodes += bot
+            .search(BotConfigs {
                 width: 250,
                 depth: 12,
                 branch: 1,
-            },
-        )
-        .expect("bot dead?")
-        .nodes;
+            })
+            .expect("bot dead!")
+            .nodes;
 
         let elasped = start.elapsed();
 

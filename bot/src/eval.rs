@@ -8,7 +8,7 @@ use tetris::{
 
 use crate::node::Node;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Weights {
     pub height: i32,
     pub well: i32,
