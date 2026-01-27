@@ -1,5 +1,5 @@
 use bot::{
-    beam::{BeamSettings, beam_search},
+    bot::{BotConfigs, BotState, best_move},
     eval::Weights,
 };
 use rand::{rng, seq::SliceRandom};
@@ -52,62 +52,68 @@ fn main() {
         _ => {}
     }
 
-    let w = Weights::default();
+    let weights = Weights::default();
 
-    let settings = BeamSettings {
+    let configs = BotConfigs {
         width: 250,
-        depth: 7,
+        depth: 12,
         branch: 1,
     };
 
-    let mut state = State {
-        board: Board::new(),
-        hold: None,
-        bag: Bag::all(),
-        next: 0,
-        b2b: 0,
-        combo: 0,
-    };
+    let mut queue = random_queue(1000);
 
-    let mut lock = Lock {
-        cleared: 0,
-        sent: 0,
-        softdrop: false,
-    };
+    let mut bot = BotState::new(
+        &State {
+            board: Board::new(),
+            hold: None,
+            bag: Bag::all(),
+            next: 0,
+            b2b: 0,
+            combo: 0,
+        },
+        &Lock {
+            cleared: 0,
+            sent: 0,
+            softdrop: false,
+        },
+        &queue[..12],
+        &weights,
+    )
+    .expect("bot should be valid smh!");
 
-    let queue_full = random_queue(1000);
+    queue.drain(..12);
 
     let mut holded = false;
 
-    for i in 0..1000 {
-        let mut queue = Vec::new();
+    for _ in 0..1000 {
+        if let Ok(result) = bot.search(configs) {
+            let mv = match best_move(&result, 0) {
+                Ok(mv) => mv,
+                _ => {
+                    println!("death!");
+                    break;
+                }
+            };
 
-        for p in 0..12 {
-            queue.push(queue_full[i + p + holded as usize]);
-        }
+            let mut nexts = Vec::new();
 
-        if let Some(result) = beam_search(
-            state.clone(),
-            lock.clone(),
-            &queue,
-            &w,
-            &settings,
-        ) {
-            let mv = result.candidates.first().unwrap().mv;
-
-            if *queue.first().unwrap() != mv.kind {
+            if mv.kind == *queue.first().unwrap() && !holded {
                 holded = true;
+                nexts.push(queue.remove(0));
             }
 
-            lock = state.make(&mv, &queue);
+            nexts.push(queue.remove(0));
 
-            println!("{}", state.board);
+            if bot.make(mv, &nexts).is_err() {
+                println!("invalid nexts!");
+                break;
+            }
+
+            println!("{}", bot.root().board);
             println!("nodes: {}", result.nodes);
             println!("depth: {}", result.depth);
 
-            state.next = 0;
-
-            std::thread::sleep(std::time::Duration::from_millis(500));
+            std::thread::sleep(std::time::Duration::from_millis(200));
         } else {
             println!("death!");
             break;
